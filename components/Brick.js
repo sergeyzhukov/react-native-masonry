@@ -21,6 +21,7 @@ export default function Brick (props) {
 export function _getImageTag (props, gutter = 0) {
 	const imageProps = {
 		key: props.uri,
+		uri: props.uri,
 		source: {
 			uri: props.uri
 		},
