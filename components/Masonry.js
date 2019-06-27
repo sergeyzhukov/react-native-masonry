@@ -63,13 +63,13 @@ export default class Masonry extends Component {
 		this.ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => !containMatchingUris(r1, r2) });
 		// This creates an array of [1..n] with values of 0, each index represent a column within the masonry
 		const columnHeights = generateColumnHeights(props.columns);
+		this._columnHeights = columnHeights;
 		this.state = {
 			dataSource: this.ds.cloneWithRows([]),
 			dimensions: {},
 			initialOrientation: true,
 			_sortedData: [],
 			_resolvedData: [],
-			_columnHeights: columnHeights,
 			_uniqueCount: props.bricks.length
 		};
 		// Assuming that rotation is binary (vertical|landscape)
@@ -98,10 +98,10 @@ export default class Masonry extends Component {
 
 		// These intents would entail a complete re-render of the listview
 		if (differentColumns || differentPriority) {
+			this._columnHeights = generateColumnHeights(nextProps.columns);
 			this.setState(state => ({
 				_sortedData: [],
 				_resolvedData: [],
-				_columnHeights: generateColumnHeights(nextProps.columns),
 				_uniqueCount
 			}), this.resolveBricks(nextProps));
 		}
@@ -138,7 +138,11 @@ export default class Masonry extends Component {
 
 		// Sort bricks and place them into their respectable columns
 		// Issues arrise if state changes occur in the midst of a resolve
-		bricks
+
+		const { _sortedData } = this.state
+		let sortedData = _sortedData;
+
+		const resolvedBricks = bricks
 			.map((brick, index) => assignObjectColumn(columns, index, brick))
 			.map((brick, index) => assignObjectIndex(offSet + index, brick))
 			.map(brick => {
@@ -149,17 +153,17 @@ export default class Masonry extends Component {
 						height: 600 / (brick.data.width / brick.data.height),
 					}
 				}
-
-				this.setState(state => {
-					const sortedData = this._insertIntoColumn(resolvedBrick, state._sortedData, state._columnHeights, columnWidth);
-					return {
-						dataSource: state.dataSource.cloneWithRows(sortedData),
-						_sortedData: sortedData,
-						_resolvedData: [...state._resolvedData, resolvedBrick]
-					};
-				});
-
+				sortedData = this._insertIntoColumn(resolvedBrick, sortedData, this._columnHeights, columnWidth);
+				return resolvedBrick;
 			})
+
+		this.setState(state => {
+			return {
+				dataSource: state.dataSource.cloneWithRows(sortedData),
+				_sortedData: sortedData,
+				_resolvedData: resolvedBricks
+			}
+		})
 	}
 
 	_setParentDimensions(event) {
@@ -193,9 +197,7 @@ export default class Masonry extends Component {
 			const heightsCopy = _columnHeights.slice();
 			const newColumnHeights = heightsCopy[columnIndex] + (columnWidth * resolvedBrick.dimensions.height / resolvedBrick.dimensions.width);
 			heightsCopy[columnIndex] = newColumnHeights;
-			this.setState({
-				_columnHeights: heightsCopy
-			});
+			this._columnHeights = heightsCopy;
 			break;
 		case PRIORITY_ORDER:
 		default:
