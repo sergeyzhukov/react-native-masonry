@@ -93,11 +93,11 @@ export default class Masonry extends Component {
 		const differentPriority = this.props.priority !== nextProps.priority;
 		// We use the difference in the passed in bricks to determine if user is appending or not
 		const brickDiff = differenceBy(nextProps.bricks, this.props.bricks, 'uri');
-		const appendedData = brickDiff.length !== nextProps.bricks.length;
+		const appendedData = brickDiff.length !== 0;
 		const _uniqueCount = brickDiff.length + this.props.bricks.length;
 
 		// These intents would entail a complete re-render of the listview
-		if (differentColumns || differentPriority || !appendedData) {
+		if (differentColumns || differentPriority) {
 			this.setState(state => ({
 				_sortedData: [],
 				_resolvedData: [],
@@ -141,19 +141,25 @@ export default class Masonry extends Component {
 		bricks
 			.map((brick, index) => assignObjectColumn(columns, index, brick))
 			.map((brick, index) => assignObjectIndex(offSet + index, brick))
-			.map(brick => resolveImage(brick))
-			.map(resolveTask => resolveTask.fork(
-				(err) => console.warn('Image failed to load'),
-				(resolvedBrick) => {
-					this.setState(state => {
-						const sortedData = this._insertIntoColumn(resolvedBrick, state._sortedData, state._columnHeights, columnWidth);
-						return {
-							dataSource: state.dataSource.cloneWithRows(sortedData),
-							_sortedData: sortedData,
-							_resolvedData: [...state._resolvedData, resolvedBrick]
-						};
-					});
-				}));
+			.map(brick => {
+				const resolvedBrick = {
+					...brick,
+					dimensions: {
+						width: 600,
+						height: 600 / (brick.data.width / brick.data.height),
+					}
+				}
+
+				this.setState(state => {
+					const sortedData = this._insertIntoColumn(resolvedBrick, state._sortedData, state._columnHeights, columnWidth);
+					return {
+						dataSource: state.dataSource.cloneWithRows(sortedData),
+						_sortedData: sortedData,
+						_resolvedData: [...state._resolvedData, resolvedBrick]
+					};
+				});
+
+			})
 	}
 
 	_setParentDimensions(event) {
