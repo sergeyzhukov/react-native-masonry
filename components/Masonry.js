@@ -235,6 +235,8 @@ export default class Masonry extends Component {
 	}
 
 	render() {
+		const { onEndReachedThreshold, columns, imageContainerStyle, customImageComponent, customImageProps, spacing, refreshControl, ...props} = this.props;
+
 		return (
 		<View style={{flex: 1}} onLayout={(event) => this._setParentDimensions(event)}>
 		<ListView
@@ -244,19 +246,21 @@ export default class Masonry extends Component {
 			scrollRenderAheadDistance={100}
 			removeClippedSubviews={false}
 			onEndReached={this._delayCallEndReach}
-			onEndReachedThreshold={this.props.onEndReachedThreshold}
+			onEndReachedThreshold={onEndReachedThreshold}
 			renderRow={(data, sectionId, rowID) => (
 			<Column
 				data={data}
-				columns={this.props.columns}
+				columns={columns}
 				parentDimensions={this.state.dimensions}
-				imageContainerStyle={this.props.imageContainerStyle}
-				customImageComponent={this.props.customImageComponent}
-				customImageProps={this.props.customImageProps}
-				spacing={this.props.spacing}
-				key={`RN-MASONRY-COLUMN-${rowID}`} />
+				imageContainerStyle={imageContainerStyle}
+				customImageComponent={customImageComponent}
+				customImageProps={customImageProps}
+				spacing={spacing}
+				key={`RN-MASONRY-COLUMN-${rowID}`}
+			/>
 			)}
-			refreshControl={this.props.refreshControl} />
+			refreshControl={refreshControl}
+			{...props} />
 		</View>
 		);
 	}

@@ -132,6 +132,7 @@ export default class Column extends Component {
 				data={this.state.images}
 				keyExtractor={this._keyExtractor}
 				renderItem={this._renderBrick}
+				scrollEnabled={false}
 				/>
 			</View>
 		)
