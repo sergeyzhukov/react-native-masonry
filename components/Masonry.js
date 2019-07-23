@@ -60,7 +60,7 @@ export default class Masonry extends Component {
 	constructor(props) {
 		super(props);
 		// Assuming users don't want duplicated images, if this is not the case we can always change the diff check
-		this.ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => !containMatchingUris(r1, r2) });
+		this.ds = new ListView.DataSource({ rowHasChanged: (r1, r2) => !containMatchingUris(r1, r2) || r1.length !== r2.length });
 		// This creates an array of [1..n] with values of 0, each index represent a column within the masonry
 		const columnHeights = generateColumnHeights(props.columns);
 		this._columnHeights = columnHeights;
@@ -92,12 +92,14 @@ export default class Masonry extends Component {
 		const differentColumns = this.props.columns !== nextProps.columns;
 		const differentPriority = this.props.priority !== nextProps.priority;
 		// We use the difference in the passed in bricks to determine if user is appending or not
-		const brickDiff = differenceBy(nextProps.bricks, this.props.bricks, 'uri');
-		const appendedData = brickDiff.length !== 0;
-		const _uniqueCount = brickDiff.length + this.props.bricks.length;
+
+		const isDifferentLength = nextProps.bricks.length !== this.props.bricks.length;
+
+		// const appendedData = brickDiff.length !== 0;
+		const _uniqueCount = nextProps.bricks.length;
 
 		// These intents would entail a complete re-render of the listview
-		if (differentColumns || differentPriority) {
+		if (differentColumns || differentPriority || isDifferentLength) {
 			this._columnHeights = generateColumnHeights(nextProps.columns);
 			this.setState(state => ({
 				_sortedData: [],
@@ -106,13 +108,13 @@ export default class Masonry extends Component {
 			}), this.resolveBricks(nextProps));
 		}
 
-		// We use the existing data and only resolve what is needed
-		if (appendedData) {
-			const offSet = this.props.bricks.length;
-			this.setState({
-				_uniqueCount
-			}, this.resolveBricks({...nextProps, bricks: brickDiff}, offSet));
-		}
+		// // We use the existing data and only resolve what is needed
+		// if (appendedData) {
+		// 	const offSet = this.props.bricks.length;
+		// 	this.setState({
+		// 		_uniqueCount
+		// 	}, this.resolveBricks({...nextProps, bricks: brickDiff}, offSet));
+		// }
 	}
 
 	getColumnWidth(width, spacing, columns) {
