@@ -66,7 +66,7 @@ export default class Masonry extends Component {
 		this._columnHeights = columnHeights;
 		this.state = {
 			dataSource: this.ds.cloneWithRows([]),
-			dimensions: {},
+			dimensions: Dimensions.get('window'),
 			initialOrientation: true,
 			_sortedData: [],
 			_resolvedData: [],
